@@ -1,0 +1,66 @@
+name: API Service CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  api-service-ci-cd:
+    runs-on: ubuntu-latest
+
+    env:
+      service_directory: api_service
+      image_name: ${{ secrets.DOCKERHUB_USERNAME }}/medqueue-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: ${{ env.service_directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest coverage
+
+      - name: Run tests with coverage
+        working-directory: ${{ env.service_directory }}
+        run: |
+          coverage run -m pytest
+          coverage report --fail-under=80
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api_service
+          push: true
+          tags: |
+            ${{ env.image_name }}:latest
+            ${{ env.image_name }}:${{ github.sha }}
+
+      # ------------------------------
+      # Deployment to DigitalOcean (commented out for now)
+      # ------------------------------
+      # - name: Deploy API service to DigitalOcean
+      #   env:
+      #     DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      #     DIGITALOCEAN_APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
+      #   run: |
+      #     echo "Triggering deployment for API service on DigitalOcean..."
+      #     curl -X POST \
+      #       -H "Authorization: Bearer ${DIGITALOCEAN_ACCESS_TOKEN}" \
+      #       -H "Content-Type: application/json" \
+      #       "https://api.digitalocean.com/v2/apps/${DIGITALOCEAN_APP_ID}/deployments"
