@@ -12,7 +12,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+
 
   api_service:
     build: ./api_service
