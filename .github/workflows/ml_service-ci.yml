@@ -3,11 +3,18 @@ name: ML Service CI/CD
 on:
   push:
     branches: [ main, master ]
+    paths:
+      - "ml_service/**"
+      - ".github/workflows/ml_service-ci.yml"
+      - "docker-compose.prod.yml"
   pull_request:
     branches: [ main, master ]
+    paths:
+      - "ml_service/**"
 
 jobs:
   ml-service-ci-cd:
+    name: ML Service tests and image build
     runs-on: ubuntu-latest
 
     env:
@@ -51,16 +58,22 @@ jobs:
             ${{ env.image_name }}:latest
             ${{ env.image_name }}:${{ github.sha }}
 
-      # ------------------------------
-      # Deployment to DigitalOcean (commented out for now)
-      # ------------------------------
-      # - name: Deploy ML service to DigitalOcean
-      #   env:
-      #     DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      #     DIGITALOCEAN_APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
-      #   run: |
-      #     echo "Triggering deployment for ML service on DigitalOcean..."
-      #     curl -X POST \
-      #       -H "Authorization: Bearer ${DIGITALOCEAN_ACCESS_TOKEN}" \
-      #       -H "Content-Type: application/json" \
-      #       "https://api.digitalocean.com/v2/apps/${DIGITALOCEAN_APP_ID}/deployments"
+  ml-service-deploy:
+    name: Deploy ML service to droplet
+    needs: ml-service-ci-cd
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DO_SSH_HOST }}
+          username: ${{ secrets.DO_SSH_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: ${{ secrets.DO_SSH_PORT }}
+          script: |
+            cd /opt/5-final-js4j
+            git pull
+            docker compose -f docker-compose.prod.yml pull ml_service
+            docker compose -f docker-compose.prod.yml up -d ml_service
