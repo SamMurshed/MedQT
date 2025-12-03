@@ -6,6 +6,8 @@ from fastapi.templating import Jinja2Templates
 from passlib.hash import bcrypt
 from .database import get_database
 from bson import ObjectId
+import html
+import re
 
 
 api_application = FastAPI(title="Medical Queue API")
@@ -57,10 +59,10 @@ async def login(request: Request):
 
     user = await collection.find_one({"email": email})
     if not user:
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/login?error=invalid", status_code=302)
 
     if not bcrypt.verify(password, user["password_hash"]):
-        return RedirectResponse("/login", status_code=302)
+        return RedirectResponse("/login?error=invalid", status_code=302)
 
     # login OK
     response = RedirectResponse(
@@ -85,6 +87,14 @@ async def register_patient(
 ):
     print("PASSWORD RECEIVED:", repr(password))
     db = get_database()
+
+    existing = await db["patients"].find_one({"email": email})
+    if existing:
+        return HTMLResponse(
+            "<h3>Email already registered. Please login.</h3>",
+            status_code=400
+    )
+    
     hashed = bcrypt.hash(password)
 
     patient_id = (await db["patients"].insert_one({
@@ -111,6 +121,14 @@ async def register_doctor(
     password: str = Form(...)
 ):
     db = get_database()
+
+    existing = await db["doctors"].find_one({"email": email})
+    if existing:
+        return HTMLResponse(
+            "<h3>Email already registered. Please login.</h3>",
+            status_code=400
+    )
+
     hashed = bcrypt.hash(password)
 
     doctor_id = (await db["doctors"].insert_one({
@@ -131,19 +149,40 @@ async def symptoms_page(request: Request):
 @api_application.post("/onboarding/symptoms")
 async def symptoms_submit(request: Request):
     form = await request.form()
+
     symptoms = form.getlist("symptoms")
+    other = form.get("other_symptom", "").strip()
 
     user_id = request.cookies.get("user_id")
     if not user_id:
         return RedirectResponse("/login")
 
+    allowed = {
+        "fever", "cough", "fatigue", "nausea",
+        "headache", "congestion", "sore_throat",
+    }
+    symptoms = [s for s in symptoms if s in allowed]
+
+    cleaned_other = None
+    if other:
+        safe = html.escape(other)
+
+        if re.fullmatch(r"[A-Za-z0-9 ,.'-]{1,80}", other):
+            cleaned_other = safe
+
+    final_symptoms = symptoms.copy()
+    if cleaned_other:
+        final_symptoms.append(cleaned_other)
+
     db = get_database()
     await db["patients"].update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"symptoms": symptoms}}
+        {"$set": {"symptoms": final_symptoms}}
     )
 
+    # Redirect to next step
     return RedirectResponse("/patient/dashboard", status_code=302)
+
 
 @api_application.get("/patient/dashboard", response_class=HTMLResponse)
 async def patient_dashboard(request: Request):

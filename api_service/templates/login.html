@@ -7,6 +7,10 @@
       <input name="email" placeholder="Email" required><br><br>
       <input name="password" type="password" placeholder="Password" required><br><br>
 
+    {% if request.query_params.get("error") == "invalid" %}
+    <p style="color:red;">Invalid email or password</p>
+    {% endif %}
+
       <label>Login as:</label>
       <select name="role">
         <option value="patient">Patient</option>

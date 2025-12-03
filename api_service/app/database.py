@@ -26,6 +26,7 @@ def get_mongo_client() -> AsyncIOMotorClient:
             f"{settings.mongo_database_name}"
             f"?authSource={settings.mongo_database_name}"
         )
+        print("🌐 CONNECTING TO:", connection_string)
         mongo_client_instance = AsyncIOMotorClient(connection_string)
     return mongo_client_instance
 

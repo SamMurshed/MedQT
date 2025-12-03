@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     mongo_username: str = "medqueue_user"
     mongo_password: str = "medqueue_password"
     mongo_database_name: str = "medqueue_db"
-    mongo_host: str = "mongo_database"
+    mongo_host: str = "104.131.184.246"
     mongo_port: int = 27017
 
     class Config:
