@@ -5,6 +5,16 @@
 
     <p>Welcome to your dashboard!</p>
 
+    {% if queue_number %}
+      <p><strong>Your queue number:</strong> {{ queue_number }}</p>
+    {% else %}
+      <p>You are not currently in the queue.</p>
+    {% endif %}
+
+    {% if eta %}
+      <p><strong>Estimated wait time:</strong> {{ eta }} minutes</p>
+    {% endif %}
+
     <p><a href="/logout">Logout</a></p>
   </body>
 </html>
