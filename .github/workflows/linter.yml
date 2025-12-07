@@ -1,9 +1,9 @@
-name: Lint and Format Python Services
+name: Lint Python Services
 
 on: [push, pull_request]
 
 jobs:
-  lint-and-format:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -18,26 +18,21 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         run: |
           cd ${{ matrix.subdir }}
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install pylint black
 
-      - name: Lint with Pylint
-        run: |
-          cd ${{ matrix.subdir }}
-          pylint **/*.py || true  # continue even if pylint fails
-
       - name: Auto-format with Black
+        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         run: |
           cd ${{ matrix.subdir }}
           black .
 
-      - name: Commit Black changes
+      - name: Lint with Pylint
+        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ${{ matrix.subdir }}
-          git diff-index --quiet HEAD || git commit -m "Auto-format Python code with Black"
-          git push
+          cd ${{ matrix.subdir }}
+          pylint **/*.py
