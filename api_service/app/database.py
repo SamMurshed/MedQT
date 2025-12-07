@@ -1,53 +1,63 @@
+"""Database utilities for managing the MongoDB client and database instance.
+
+This module provides helper functions to retrieve a shared async MongoDB client
+using Motor. The client is lazily created on first use and reused for performance.
+"""
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from .config import settings
 
-mongo_client_instance: AsyncIOMotorClient | None = None
-"""
-Module-level cache for the MongoDB client instance to avoid reconnecting
-on every request.
-"""
+_mongo_client_instance: AsyncIOMotorClient | None = None
+
+
+def _build_connection_string() -> str:
+    """Construct and return a MongoDB connection URI from settings."""
+    return (
+        f"mongodb://{settings.mongo_username}:{settings.mongo_password}"
+        f"@{settings.mongo_host}:{settings.mongo_port}/"
+        f"{settings.mongo_database_name}?authSource={settings.mongo_database_name}"
+    )
 
 
 def get_mongo_client() -> AsyncIOMotorClient:
     """
-    Create or return the existing MongoDB client.
+    Return the shared async MongoDB client instance.
+    If none exists, create one using configuration values.
 
     Returns
     -------
     AsyncIOMotorClient
-        A connected MongoDB client instance using configuration from
-        the global `settings` object.
+        The cached or newly created MongoDB client.
     """
-    global mongo_client_instance
-    if mongo_client_instance is None:
-        connection_string = (
-            f"mongodb://{settings.mongo_username}:{settings.mongo_password}"
-            f"@{settings.mongo_host}:{settings.mongo_port}/"
-            f"{settings.mongo_database_name}"
-            f"?authSource={settings.mongo_database_name}"
-        )
-        mongo_client_instance = AsyncIOMotorClient(connection_string)
-    return mongo_client_instance
+    global _mongo_client_instance
 
-def close_mongo_client():
+    if _mongo_client_instance is None:
+        _mongo_client_instance = AsyncIOMotorClient(_build_connection_string())
+
+    return _mongo_client_instance
+
+
+def close_mongo_client() -> None:
     """
-    Close the MongoDB client safely. Required for testing to avoid
-    'Event loop is closed' errors caused by stale async client instances.
+    Close and reset the MongoDB client.
+
+    This is mainly used in testing to avoid event loop conflicts or
+    leftover async connections.
     """
-    global mongo_client_instance
-    if mongo_client_instance is not None:
-        mongo_client_instance.close()
-        mongo_client_instance = None
+    global _mongo_client_instance
+
+    if _mongo_client_instance:
+        _mongo_client_instance.close()
+        _mongo_client_instance = None
 
 
 def get_database():
     """
-    Return the MongoDB database object for the configured database name.
+    Return a Motor async database instance for the configured DB name.
 
     Returns
     -------
     motor.motor_asyncio.AsyncIOMotorDatabase
-        The database object corresponding to `settings.mongo_database_name`.
+        The database object associated with the MongoDB client.
     """
-    client_instance = get_mongo_client()
-    return client_instance[settings.mongo_database_name]
+    return get_mongo_client()[settings.mongo_database_name]

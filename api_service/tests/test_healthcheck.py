@@ -1,88 +1,15 @@
-# def test_middleware_redirects_unauthenticated(client):
-#     response = client.get("/patient/dashboard", follow_redirects=False)
-#     assert response.status_code in (302, 307)
-#     assert "/login" in response.headers["location"]
+"""Test suite for API endpoints and authentication flows."""
 
-# def test_login_page_loads(client):
-#     response = client.get("/login")
-#     assert response.status_code == 200
-#     assert "Login" in response.text
-
-# def test_login_invalid_credentials(client):
-#     response = client.post("/login", data={
-#         "email": "doesnotexist@example.com",
-#         "password": "wrongpassword",
-#         "role": "patient"
-#     }, follow_redirects=False)
-#     assert response.status_code == 302
-#     assert "/login?error=invalid" in response.headers["location"]
-
-# def test_register_patient(client):
-#     email = "testuser@example.com"
-#     response = client.post("/register/patient", data={
-#         "name": "John Test",
-#         "email": email,
-#         "password": "secret123"
-#     }, follow_redirects=False)
-
-#     assert response.status_code == 302
-#     assert response.headers["location"] == "/onboarding/symptoms"
-#     assert "user_id" in response.cookies
-#     assert response.cookies.get("role") == "patient"
-
-# def test_register_patient_duplicate_email(client):
-#     email = "dupe@example.com"
-#     client.post("/register/patient", data={
-#         "name": "Dupe",
-#         "email": email,
-#         "password": "pass"
-#     })
-
-#     response = client.post("/register/patient", data={
-#         "name": "Dupe 2",
-#         "email": email,
-#         "password": "pass"
-#     })
-
-#     assert response.status_code == 400
-#     assert "already registered" in response.text
-
-# def test_symptoms_submission(client):
-#     response = client.post("/register/patient", data={
-#         "name": "Test User",
-#         "email": "symptoms@example.com",
-#         "password": "pass"
-#     })
-#     cookies = response.cookies
-#     response = client.post(
-#         "/onboarding/symptoms",
-#         data={"symptoms": ["fever", "cough"]},
-#         cookies=cookies,
-#         follow_redirects=False
-#     )
-#     assert response.status_code == 302
-#     assert response.headers["location"] == "/patient/dashboard"
-
-# def test_dashboard_after_login(client):
-#     response = client.post("/register/patient", data={
-#         "name": "Dash Test",
-#         "email": "dash@example.com",
-#         "password": "pass"
-#     })
-#     cookies = response.cookies
-
-#     response = client.get("/patient/dashboard", cookies=cookies)
-#     assert response.status_code == 200
-#     assert "Dashboard" in response.text
-
-
-# tests/test_healthcheck.py
 import pytest
 from bson import ObjectId
 
 
 @pytest.mark.asyncio
 async def test_middleware_redirects_unauthenticated(client):
+    """
+    Ensure that accessing protected endpoints without authentication
+    redirects the user to the login page.
+    """
     ac, _ = client
     response = await ac.get("/patient/dashboard", follow_redirects=False)
     assert response.status_code in (302, 307)
@@ -91,6 +18,9 @@ async def test_middleware_redirects_unauthenticated(client):
 
 @pytest.mark.asyncio
 async def test_login_page_loads(client):
+    """
+    Verify that the login page can be loaded successfully.
+    """
     ac, _ = client
     response = await ac.get("/login")
     assert response.status_code == 200
@@ -99,6 +29,10 @@ async def test_login_page_loads(client):
 
 @pytest.mark.asyncio
 async def test_login_invalid_credentials(client):
+    """
+    Check that submitting invalid login credentials redirects
+    back to the login page with an error parameter.
+    """
     ac, mock_db = client
 
     # simulate no user found
@@ -120,6 +54,10 @@ async def test_login_invalid_credentials(client):
 
 @pytest.mark.asyncio
 async def test_register_patient(client):
+    """
+    Test that a new patient can register successfully and receives
+    the appropriate cookies and redirect.
+    """
     ac, mock_db = client
 
     # simulate email not found
@@ -146,9 +84,12 @@ async def test_register_patient(client):
 
 @pytest.mark.asyncio
 async def test_register_patient_duplicate_email(client):
+    """
+    Test that attempting to register with an existing email
+    returns an error.
+    """
     ac, mock_db = client
 
-    # simulate duplicate found
     mock_db["patients"].find_one.return_value = {"email": "dupe@example.com"}
 
     response = await ac.post(
@@ -161,57 +102,11 @@ async def test_register_patient_duplicate_email(client):
     assert "already registered" in response.text
 
 
-# @pytest.mark.asyncio
-# async def test_symptoms_submission(client):
-#     ac, mock_db = client
-
-#     # --- Step 1: Register to get cookies ---
-#     user_id = ObjectId()
-#     mock_db["patients"].find_one.return_value = None
-#     mock_db["patients"].insert_one.return_value.inserted_id = user_id
-
-#     register_response = await ac.post(
-#         "/register/patient",
-#         data={"name": "Test User", "email": "symptoms@example.com", "password": "pass"}
-#     )
-#     cookies = register_response.cookies
-
-#     # Step 2: Submit symptoms
-#     response = await ac.post(
-#         "/onboarding/symptoms",
-#         data={"symptoms": ["fever", "cough"]},
-#         cookies=cookies,
-#         follow_redirects=False
-#     )
-
-#     assert response.status_code == 302
-#     assert response.headers["location"] == "/patient/dashboard"
-
-#     # ensure db update was called
-#     mock_db["patients"].update_one.assert_called()
-
-
-# @pytest.mark.asyncio
-# async def test_dashboard_after_login(client):
-#     ac, mock_db = client
-
-#     # create fake user id
-#     user_id = ObjectId()
-
-#     # Ensure dashboard lookup works
-#     mock_db["patients"].find_one.return_value = {"_id": user_id, "name": "Dash", "symptoms": []}
-
-#     response = await ac.get(
-#         "/patient/dashboard",
-#         cookies={"user_id": str(user_id)}
-#     )
-
-#     assert response.status_code == 200
-#     assert "Dashboard" in response.text
-
-
 @pytest.mark.asyncio
 async def test_root_redirects_to_login(client):
+    """
+    Ensure that visiting the root URL redirects to the login page.
+    """
     ac, _ = client
     res = await ac.get("/", follow_redirects=False)
     assert res.status_code in (302, 307)
@@ -220,6 +115,9 @@ async def test_root_redirects_to_login(client):
 
 @pytest.mark.asyncio
 async def test_register_doctor_success(client):
+    """
+    Test that a new doctor can register successfully.
+    """
     ac, mock_db = client
 
     mock_db["doctors"].find_one.return_value = None
@@ -240,6 +138,9 @@ async def test_register_doctor_success(client):
 
 @pytest.mark.asyncio
 async def test_register_doctor_duplicate(client):
+    """
+    Test that registering a doctor with an existing email returns an error.
+    """
     ac, mock_db = client
 
     mock_db["doctors"].find_one.return_value = {"email": "doc@example.com"}
@@ -251,28 +152,3 @@ async def test_register_doctor_duplicate(client):
 
     assert res.status_code == 400
     assert "already registered" in res.text
-
-
-# @pytest.mark.asyncio
-# async def test_symptoms_other_valid(client):
-#     ac, mock_db = client
-#     user_id = ObjectId()
-
-#     mock_db["patients"].insert_one.return_value.inserted_id = user_id
-#     mock_db["patients"].find_one.return_value = None
-
-#     reg = await ac.post("/register/patient", data={
-#         "name": "x",
-#         "email": "other@example.com",
-#         "password": "p"
-#     })
-
-#     cookies = reg.cookies
-
-#     res = await ac.post("/onboarding/symptoms", data={
-#         "symptoms": ["fever"],
-#         "other_symptom": "dizziness"
-#     }, cookies=cookies, follow_redirects=False)
-
-#     assert res.status_code == 302
-#     mock_db["patients"].update_one.assert_called()
