@@ -8,18 +8,18 @@
     <table>
         <thead>
             <tr>
-                <th>Queue #</th>
+                <th>Date</th>
+                <th>Time</th>
                 <th>Status</th>
-                <th>Estimated Wait (min)</th>
                 <th>Symptoms</th>
             </tr>
         </thead>
         <tbody>
             {% for appt in appointments %}
             <tr>
-                <td>{{ appt.queue_number or '--' }}</td>
+                <td>{{ appt.date or '--' }}</td>
+                <td>{{ appt.time or '--' }}</td>
                 <td>{{ appt.status }}</td>
-                <td>{% if appt.predicted_wait_minutes %}{{ appt.predicted_wait_minutes|int }}{% else %}--{% endif %}</td>
                 <td>
                     {% for s in appt.symptoms %}
                         {{ s.replace('_',' ').title() }}{% if not loop.last %}, {% endif %}

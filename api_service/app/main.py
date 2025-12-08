@@ -5,6 +5,7 @@ for the Medical Queue API.
 import html
 import re
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from bson import ObjectId
 from fastapi import FastAPI, Request, Form
@@ -205,7 +206,7 @@ async def symptoms_submit(request: Request):
 
 @api_application.get("/patient/dashboard", response_class=HTMLResponse)
 async def patient_dashboard(request: Request):
-    """Render patient dashboard with queue and ETA info."""
+    """Render patient dashboard with queue info."""
     user_id = request.cookies.get("user_id")
     if not user_id:
         return RedirectResponse("/login")
@@ -217,18 +218,12 @@ async def patient_dashboard(request: Request):
     )
 
     queue_number = appointment.get("queue_number") if appointment else None
-    eta = (
-        int(appointment.get("predicted_wait_minutes"))
-        if appointment and appointment.get("predicted_wait_minutes")
-        else None
-    )
 
     return templates.TemplateResponse(
         "patient_dashboard.html",
         {
             "request": request,
             "queue_number": queue_number,
-            "eta": eta,
             "symptoms": patient.get("symptoms", []) if patient else [],
         },
     )
@@ -312,20 +307,30 @@ async def doctor_view_patient(request: Request, patient_id: str):
     appointments = (
         await db["appointments"]
         .find({"patient_id": patient_obj_id})
-        .sort("queue_number", 1)
+        .sort("created_at", -1)
         .to_list(length=1000)
     )
 
-    converted_appointments = [
-        {
-            "id": str(appt["_id"]),
-            "status": appt.get("status"),
-            "queue_number": appt.get("queue_number"),
-            "predicted_wait_minutes": appt.get("predicted_wait_minutes"),
-            "symptoms": appt.get("symptoms", []),
-        }
-        for appt in appointments
-    ]
+    converted_appointments = []
+    for appt in appointments:
+        created_at = appt.get("created_at")
+
+        if isinstance(created_at, datetime):
+            date_str = created_at.strftime("%Y-%m-%d")
+            time_str = created_at.strftime("%H:%M")
+        else:
+            date_str = None
+            time_str = None
+
+        converted_appointments.append(
+            {
+                "id": str(appt["_id"]),
+                "status": appt.get("status"),
+                "symptoms": appt.get("symptoms", []),
+                "date": date_str,
+                "time": time_str,
+            }
+        )
 
     return templates.TemplateResponse(
         "doctor_patient.html",
