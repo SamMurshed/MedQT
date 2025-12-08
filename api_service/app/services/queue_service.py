@@ -1,6 +1,8 @@
 """Queue service for managing patient appointments and computing triage priorities."""
 
 from typing import List, Dict, Any
+from datetime import datetime
+
 from bson import ObjectId
 from app.database import get_database
 from app.services.ml_client import request_wait_time_prediction
@@ -94,6 +96,7 @@ async def create_appointment_for_patient(
         # Temporary value; will be recalculated for everyone below
         "predicted_wait_minutes": 0.0,
         "triage_priority": triage_priority,
+        "created_at": datetime.utcnow(),
     }
     insertion_result = await collection.insert_one(appointment_document)
     inserted_id = insertion_result.inserted_id

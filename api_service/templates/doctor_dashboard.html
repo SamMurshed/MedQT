@@ -10,7 +10,6 @@
                 <th>Queue #</th>
                 <th>Patient Name</th>
                 <th>Symptoms</th>
-                <th>ETA (min)</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -24,7 +23,6 @@
                         {{ s.replace('_',' ').title() }}{% if not loop.last %}, {% endif %}
                     {% endfor %}
                 </td>
-                <td>{% if item.eta %}{{ item.eta }}{% else %}--{% endif %}</td>
                 <td>
                     <form method="post" action="/doctor/complete/{{ item.appointment_id }}" style="display:inline;">
                         <button class="btn" type="submit">Mark Done</button>
