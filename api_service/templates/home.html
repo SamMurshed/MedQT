@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Welcome to MedQT{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>
+        Welcome to <span class="highlight">MedQT</span>
+        <br>
+        <span id="typing" class="typing-text"></span>
+    </h1>
+
+    <p class="subtitle">
+        MedQT helps deliver fast, fair, and prioritized patient care.
+        Powered by intelligent symptom-based queueing.
+    </p>
+</div>
+
+<div class="card option-card">
+    <h2>Get Started</h2>
+    <p>Choose your role to begin.</p>
+
+    <div class="button-grid">
+        <a class="btn role-btn" href="/register/patient">I'm a Patient</a>
+        <a class="btn role-btn" href="/register/doctor">I'm a Doctor</a>
+    </div>
+
+    <p class="login-note">
+        Already using MedQT?
+        <a href="/login">Log in here</a>.
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+<script>
+var typed = new Typed('#typing', {
+  strings: [
+    "Smarter queues.",
+    "Faster care.",
+    "Better patient outcomes.",
+    "Welcome to MedQT."
+  ],
+  typeSpeed: 55,
+  backSpeed: 35,
+  loop: true,
+  showCursor: false
+});
+</script>
+{% endblock %}
