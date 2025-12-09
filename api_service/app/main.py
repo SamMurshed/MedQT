@@ -55,9 +55,9 @@ async def auth_middleware(request: Request, call_next):
 
 
 @api_application.get("/", response_class=HTMLResponse)
-async def root_redirect(_request: Request):
+async def root_redirect(request: Request):
     """Redirect root URL to login page."""
-    return RedirectResponse("/login")
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 @api_application.get("/login", response_class=HTMLResponse)
