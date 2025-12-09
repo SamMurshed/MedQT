@@ -15,7 +15,6 @@ Built as a distributed microservice system with machine-learning prediction, aud
 Service	DockerHub Link
 - API	https://hub.docker.com/r/ct04/medqueue-api
 - ML Predictor	https://hub.docker.com/r/ct04/medqueue-ml
-- Event Logger	https://hub.docker.com/r/ct04/medqueue-logger
 
 # Team Members
 
@@ -47,11 +46,9 @@ Predicts estimated wait times
 
 Used by API for patient ETA calculations
 
-# Event Logger Service
+# Mongo DB Service
 
-Stores system events from the API
-
-Helps with debugging, accountability, and analytics
+Mongo DB database hosted by the droplet
 
 ---
 
@@ -61,7 +58,7 @@ This project is containerised, so the simplest and recommended way to run everyt
 
 # 1. Prerequisites
 
-Install:
+- Install:
 
 Git
 
