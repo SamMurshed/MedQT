@@ -19,6 +19,10 @@ Service	DockerHub Link
 # Team Members
 
 - Conor Tiernan - https://github.com/ct-04
+- Sean Tang - https://github.com/plant445
+- Jaylon McDuffie - https://github.com/treejitsu
+- Howard Appel - https://github.com/hna2019
+- Sam Murshed - https://github.com/SamMurshed
 
 ---
 
