@@ -1,22 +1,22 @@
-# Final Project
+# Final Project (Capstone)
 
 [![API Service CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/api_service-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/api_service-ci.yml)
 [![ML Service CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/ml_service-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/ml_service-ci.yml)
 [![Linting CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/lint.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/lint.yml)
 
-### MedQT
+## MedQT
 
-AI-powered, symptom-based triage and queue management for modern clinics.
-Built as a distributed microservice system with machine-learning prediction, audit logging, and a rich interactive UI.
+What if patients didn’t have to wait in uncertainty, and clinics could prioritize care automatically based on symptoms?
+That's where MedQT comes in. This platform provides AI-driven triage, real-time queue management, and personalized wait-time prediction using a distributed microservice design. With a transparent audit log and clean patient–doctor interface, it makes walk-in care faster, safer, and more efficient.
 
 ---
 
-# Docker Images
+## Docker Images
 Service	DockerHub Link
 - API	https://hub.docker.com/r/ct04/medqueue-api
 - ML Predictor	https://hub.docker.com/r/ct04/medqueue-ml
 
-# Team Members
+## Team Members
 
 - Conor Tiernan - https://github.com/ct-04
 - Sean Tang - https://github.com/plant445
@@ -26,11 +26,11 @@ Service	DockerHub Link
 
 ---
 
-# System Architecture
+## System Architecture
 
 - MedQueue consists of 3 interconnected microservices:
 
-# API Service (FastAPI)
+### API Service (FastAPI)
 
 - Hosts patient and doctor dashboards
 
@@ -42,7 +42,7 @@ Service	DockerHub Link
 
 - Stores data in MongoDB
 
-# ML Predictor Service
+### ML Predictor Service
 
 - Flask service hosting a trained regression model
 
@@ -50,17 +50,17 @@ Service	DockerHub Link
 
 - Used by API for patient ETA calculations
 
-# Mongo DB Service
+### Mongo DB Service
 
 - Mongo DB database hosted by the droplet
 
 ---
 
-### Configuring and Running the System (All Platforms)
+## Configuring and Running the System (All Platforms)
 
 - This project is containerised, so the simplest and recommended way to run everything (API, ML service, MongoDB, seed data) is with Docker Compose.
 
-# 1. Prerequisites
+### 1. Prerequisites
 
 - Install:
 
@@ -82,18 +82,18 @@ Verify:
 - docker --version
 - docker compose version
 
-# 2. Clone the Repository
+### 2. Clone the Repository
 - git clone https://github.com/swe-students-fall2025/5-final-js4j.git
 - cd 5-final-js4j
 
-# 3. Create the .env File
+### 3. Create the .env File
 
 - Sent in private chat with submission
 
 
 - Then edit .env and update any passwords or secrets as described in the section “Secret configuration files (.env and env.example)” below.
 
-# 4. Run the Full System in Development
+### 4. Run the Full System in Development
 
 From the project root:
 
