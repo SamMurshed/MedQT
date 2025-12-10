@@ -1,12 +1,13 @@
-"""Main FastAPI application defining routes, authentication, and lifecycle
-for the Medical Queue API.
 """
-
+Main FastAPI application defining routes, authentication, and lifecycle
+for the Medical Queue API. 
+"""
+# imports
 import html
 import re
 from contextlib import asynccontextmanager
 from datetime import datetime
-
+# apis
 from bson import ObjectId
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -21,7 +22,12 @@ from .services.queue_service import (
     notify_next_patient_ready,
 )
 
-
+# ---------------------------------------------------------------
+# Core system setup:
+# - Connects to the database when the app starts
+# - Disconnects when the app shuts down
+# - Loads HTML templates and static files (CSS)
+# ---------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     """Application lifespan: connect and disconnect MongoDB client."""
@@ -34,7 +40,11 @@ api_application = FastAPI(lifespan=lifespan, title="Medical Queue API")
 api_application.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-
+# ---------------------------------------------------------------
+# Authentication middleware:
+# - Blocks users from accessing patient/doctor pages unless logged in
+# - Public pages like login and register are still allowed
+# ---------------------------------------------------------------
 @api_application.middleware("http")
 async def auth_middleware(request: Request, call_next):
     """Enforce authentication for non-public routes."""
@@ -54,7 +64,12 @@ async def auth_middleware(request: Request, call_next):
         return RedirectResponse("/login")
     return await call_next(request)
 
-
+# ---------------------------------------------------------------
+# Home + Login:
+# - Shows login screen
+# - Checks user credentials and role (patient vs doctor)
+# - Redirects to the correct dashboard after login
+# ---------------------------------------------------------------
 @api_application.get("/", response_class=HTMLResponse)
 async def root_redirect(request: Request):
     """Redirect root URL to login page."""
@@ -95,7 +110,12 @@ async def login(request: Request):
     response.set_cookie("role", role)
     return response
 
-
+# ---------------------------------------------------------------
+# Registration:
+# - Allows patients and doctors to create accounts
+# - Stores basic info in the database securely (password hashing)
+# - Logs them in immediately after signup
+# ---------------------------------------------------------------
 @api_application.get("/register/patient", response_class=HTMLResponse)
 async def register_patient_page(request: Request):
     """Render patient registration page."""
@@ -160,7 +180,12 @@ async def register_doctor(
     response.set_cookie("role", "doctor")
     return response
 
-
+# ---------------------------------------------------------------
+# Patient Symptom Onboarding:
+# - After signing up or when they need a new appointment
+# - Patients choose their symptoms (and may type custom ones)
+# - This automatically creates their position in the queue
+# ---------------------------------------------------------------
 @api_application.get("/onboarding/symptoms", response_class=HTMLResponse)
 async def symptoms_page(request: Request):
     """Render symptom selection form for patients."""
@@ -211,7 +236,12 @@ async def symptoms_submit(request: Request):
 
     return RedirectResponse("/patient/dashboard", status_code=302)
 
-
+# ---------------------------------------------------------------
+# Patient Dashboard:
+# - Shows their queue number and updated wait time
+# - Displays symptoms they reported
+# - If not in queue, gives option to schedule an appointment
+# ---------------------------------------------------------------
 @api_application.get("/patient/dashboard", response_class=HTMLResponse)
 async def patient_dashboard(request: Request):
     """Render patient dashboard with queue and eta info."""
@@ -244,7 +274,12 @@ async def patient_dashboard(request: Request):
         },
     )
 
-
+# ---------------------------------------------------------------
+# Doctor Dashboard:
+# - Lists every waiting patient in correct queue order
+# - Shows their symptoms + estimated wait time
+# - Provides tools to mark the next patient as “seen”
+# ---------------------------------------------------------------
 @api_application.get("/doctor/dashboard", response_class=HTMLResponse)
 async def doctor_dashboard(request: Request):
     """Render doctor dashboard showing the current patient queue."""
@@ -289,7 +324,13 @@ async def doctor_dashboard(request: Request):
         },
     )
 
-
+# ---------------------------------------------------------------
+# Complete Appointment:
+# - Doctors click a button when they finish with a patient
+# - That patient is marked “completed”
+# - Everyone else in line moves up by one
+# - Wait times are recomputed automatically
+# ---------------------------------------------------------------
 @api_application.post("/doctor/complete/{appointment_id}")
 async def doctor_complete_appointment(request: Request, appointment_id: str):
     """Mark appointment completed, reorder the queue, and notify the next patient."""
@@ -328,7 +369,11 @@ async def doctor_complete_appointment(request: Request, appointment_id: str):
 
     return RedirectResponse("/doctor/dashboard", status_code=302)
 
-
+# ---------------------------------------------------------------
+# View Patient Details (Doctor Only):
+# - Doctors can view a full history of a selected patient
+# - Includes symptoms and appointment timestamps
+# ---------------------------------------------------------------
 @api_application.get("/doctor/patient/{patient_id}", response_class=HTMLResponse)
 async def doctor_view_patient(request: Request, patient_id: str):
     """Show patient details and appointment history to doctor."""
@@ -380,6 +425,11 @@ async def doctor_view_patient(request: Request, patient_id: str):
         },
     )
 
+# ---------------------------------------------------------------
+# Patient Messages:
+# - Shows any notifications sent to the patient
+# - Example: “Your appointment is ready”
+# ---------------------------------------------------------------
 
 @api_application.get("/messages", response_class=HTMLResponse)
 async def patient_messages(request: Request):
@@ -420,6 +470,11 @@ async def patient_messages(request: Request):
         },
     )
 
+# ---------------------------------------------------------------
+# Logout:
+# - Clears browser login cookies
+# - Sends user back to login page
+# ---------------------------------------------------------------
 
 @api_application.get("/logout")
 async def logout():
