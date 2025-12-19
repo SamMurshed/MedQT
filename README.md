@@ -1,10 +1,8 @@
-# Final Project
-
 [![API Service CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/api_service-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/api_service-ci.yml)
 [![ML Service CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/ml_service-ci.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/ml_service-ci.yml)
 [![Linting CI](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/lint.yml/badge.svg)](https://github.com/swe-students-fall2025/5-final-js4j/actions/workflows/lint.yml)
 
-## MedQT
+# MedQT
 
 What if patients didn’t have to wait in uncertainty, and clinics could prioritize care automatically based on symptoms? That's where MedQT comes in. This platform provides AI-driven triage, real-time queue management, and personalized wait-time prediction using a distributed microservice design. With a transparent audit log and clean patient–doctor interface, it makes walk-in care faster, safer, and more efficient.
 
