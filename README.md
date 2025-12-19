@@ -8,6 +8,17 @@ What if patients didn’t have to wait in uncertainty, and clinics could priorit
 
 ---
 
+## Snapshots
+
+![Home](https://github.com/user-attachments/assets/9e946a82-582a-4027-a2d6-dbf441a8c4fb)
+
+![Patient](https://github.com/user-attachments/assets/9987394d-e4f1-4004-861c-1261953ac5ef)
+
+![Doctor](https://github.com/user-attachments/assets/f0e2d6d6-5cf7-4cee-98d2-6a468ffe753b)
+
+
+---
+
 ## Docker Images
 Service	DockerHub Link
 - API	https://hub.docker.com/r/ct04/medqueue-api
